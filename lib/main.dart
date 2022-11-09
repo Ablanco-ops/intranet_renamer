@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intranet_renamer/data_provider.dart';
-import 'package:intranet_renamer/home.dart';
+import 'package:intranet_renamer/providers/data_provider.dart';
+import 'package:intranet_renamer/screens/home.dart';
 import 'package:provider/provider.dart';
 
 void main() {
