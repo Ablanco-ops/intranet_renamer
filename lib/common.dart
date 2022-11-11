@@ -1,5 +1,5 @@
-import 'package:archive/archive_io.dart';
 import 'package:file_picker/file_picker.dart';
+import 'package:flutter/material.dart';
 
 Future<String?> pickDirectory() async {
   final String? result = await FilePicker.platform.getDirectoryPath();
@@ -16,15 +16,9 @@ Future<String> pickFile(String extension) async {
   }
 }
 
-Future extractFile(String filepath, String outPath) async {
-  final inputStream = InputFileStream(filepath);
-  final archive = ZipDecoder().decodeBuffer(inputStream);
 
-  for (var file in archive.files) {
-    if (file.isFile) {
-      final outputStream = OutputFileStream('$outPath/${file.name}');
-      file.writeContent(outputStream);
-      outputStream.close();
-    }
-  }
+
+void customSnack(String texto, BuildContext context) {
+  SnackBar snackBar = SnackBar(content: Text(texto));
+  ScaffoldMessenger.of(context).showSnackBar(snackBar);
 }

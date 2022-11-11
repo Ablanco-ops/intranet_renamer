@@ -1,12 +1,13 @@
 import 'dart:io';
 
 import 'package:excel/excel.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
 import 'package:intranet_renamer/common.dart';
 import 'package:intranet_renamer/preferences.dart';
+import 'package:intranet_renamer/zip_processor.dart';
+import 'package:syncfusion_flutter_pdf/pdf.dart';
 
-import '../model/Empleado.dart';
+import '../model/empleado.dart';
 
 class DataProvider extends ChangeNotifier {
   String _outputPath = '';
@@ -16,8 +17,12 @@ class DataProvider extends ChangeNotifier {
   int _colId = 0;
   int _colNombre = 1;
   int _colApellidos = 2;
-  List<Empleado> listaEmpleados = [];
+  List<Empleado> _listaEmpleados = [];
+  bool dragging = false;
+  bool processing = false;
+  int numDoc = 0;
 
+  List<Empleado> get listaEmpleados => _listaEmpleados;
   String get outputPath => _outputPath;
   String get inputPath => _inputPath;
   String get excelPath => _excelPath;
@@ -34,6 +39,7 @@ class DataProvider extends ChangeNotifier {
     if (preferenciasCargadas == false) {
       _inputPath = await Preferences.getPreferences('inputPath');
       _outputPath = await Preferences.getPreferences('outputPath');
+      _excelPath = await Preferences.getPreferences('excelPath');
       notifyListeners();
       preferenciasCargadas = true;
     }
@@ -58,11 +64,20 @@ class DataProvider extends ChangeNotifier {
     }
     Preferences.setPreferences('excelPath', _excelPath);
 
-    _readExcel();
     notifyListeners();
   }
 
-  Future _readExcel() async {
+  void setListaEmpleados(List<Empleado> lista) {
+    _listaEmpleados = lista;
+    for (Empleado empleado in lista) {
+      if (empleado.files.isNotEmpty) {
+        numDoc++;
+      }
+    }
+    notifyListeners();
+  }
+
+  Future readExcel() async {
     listaEmpleados.clear();
     final data = await File(_excelPath).readAsBytes();
     final excel = Excel.decodeBytes(data);
@@ -91,7 +106,7 @@ class DataProvider extends ChangeNotifier {
         }
       }
       if (valido == 3) {
-        listaEmpleados
+        _listaEmpleados
             .add(Empleado(id: id, nombre: nombre, apellidos: apellidos));
       }
     }
@@ -100,7 +115,35 @@ class DataProvider extends ChangeNotifier {
 
   Future getArchives() async {
     final file = await pickFile('zip');
-    await extractFile(file, _inputPath);
-
+    final zip = ZipProcessor(inPath: _inputPath, outPath: _outputPath);
+    await zip.extractFile(file);
   }
+
+  void draggingFile(bool value) {
+    dragging = value;
+
+    notifyListeners();
+  }
+
+  void showProgressIndicator() {
+    processing = !processing;
+    notifyListeners();
+  }
+
+  // Future draggedFile(DropDoneDetails file, BuildContext context) async {
+  //   draggingFile(false);
+
+  //   if (file.files.length != 1) {
+  //     Excepciones.tooManyFiles(context);
+  //   } else if (!file.files[0].name.endsWith('zip')) {
+  //     Excepciones.incorrectFile(context);
+  //   } else {
+  //     try {
+  //       await extractFile(file.files[0].path, inputPath);
+  //     } catch (e) {
+  //       print(e);
+  //     }
+  //   }
+  // }
+
 }
