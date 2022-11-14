@@ -13,4 +13,12 @@ class Excepciones {
   static void decodingError(BuildContext context) {
     customSnack('Error al descomprimir archivo', context);
   }
+
+  static void readingPdfError(BuildContext context) {
+    customSnack('Error al leer documentos', context);
+  }
+
+  static void renameError(BuildContext context) {
+    customSnack('Error al renombrar documentos', context);
+  }
 }

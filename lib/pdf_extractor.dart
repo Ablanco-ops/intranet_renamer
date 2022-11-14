@@ -17,7 +17,8 @@ class PdfExtractor {
     // print(text);
     RegExp reg = RegExp(r'[XYZ]?([0-9]{7,8})([A-Z])');
     RegExpMatch? id = reg.firstMatch(text);
-    print(text);
+    final nombre = text.split('\n').first;
+    print(nombre);
     doc.dispose();
     if (id != null) {
       print(id[0]);
@@ -31,7 +32,8 @@ class PdfExtractor {
     final Directory inputDir = Directory(inputPath);
     for (var entity in inputDir.listSync()) {
       print(entity.path);
-      if (entity is File && (entity.path.endsWith('.pdf') || entity.path.endsWith('.PDF'))) {
+      if (entity is File &&
+          (entity.path.endsWith('.pdf') || entity.path.endsWith('.PDF'))) {
         final id = await _obtainId(entity.path);
         final matched = lista.firstWhereOrNull((element) => element.id == id);
         if (matched != null) {

@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:intranet_renamer/common.dart';
 import 'package:intranet_renamer/preferences.dart';
 import 'package:intranet_renamer/zip_processor.dart';
-import 'package:syncfusion_flutter_pdf/pdf.dart';
 
 import '../model/empleado.dart';
 
@@ -14,9 +13,9 @@ class DataProvider extends ChangeNotifier {
   String _inputPath = '';
   String _excelPath = '';
   bool preferenciasCargadas = false;
-  int _colId = 0;
-  int _colNombre = 1;
-  int _colApellidos = 2;
+  int _colId = 1;
+  int _colNombre = 0;
+ 
   List<Empleado> _listaEmpleados = [];
   bool dragging = false;
   bool processing = false;
@@ -69,6 +68,7 @@ class DataProvider extends ChangeNotifier {
 
   void setListaEmpleados(List<Empleado> lista) {
     _listaEmpleados = lista;
+    numDoc = 0;
     for (Empleado empleado in lista) {
       if (empleado.files.isNotEmpty) {
         numDoc++;
@@ -99,15 +99,11 @@ class DataProvider extends ChangeNotifier {
           valido++;
           print(nombre);
         }
-        if (row[_colApellidos]!.value != null) {
-          apellidos = row[_colApellidos]!.value.toString();
-          valido++;
-          print(apellidos);
-        }
+        
       }
-      if (valido == 3) {
+      if (valido == 2) {
         _listaEmpleados
-            .add(Empleado(id: id, nombre: nombre, apellidos: apellidos));
+            .add(Empleado(id: id, nombre: nombre));
       }
     }
     notifyListeners();
@@ -130,20 +126,6 @@ class DataProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Future draggedFile(DropDoneDetails file, BuildContext context) async {
-  //   draggingFile(false);
-
-  //   if (file.files.length != 1) {
-  //     Excepciones.tooManyFiles(context);
-  //   } else if (!file.files[0].name.endsWith('zip')) {
-  //     Excepciones.incorrectFile(context);
-  //   } else {
-  //     try {
-  //       await extractFile(file.files[0].path, inputPath);
-  //     } catch (e) {
-  //       print(e);
-  //     }
-  //   }
-  // }
+  
 
 }

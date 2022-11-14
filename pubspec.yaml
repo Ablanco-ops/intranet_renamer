@@ -39,7 +39,7 @@ dependencies:
   file_picker: ^5.2.2
   provider: ^6.0.4
   shared_preferences: ^2.0.15
-  flutter_archive: ^5.0.0
+
   excel: ^2.0.0-null-safety-3
   archive: ^3.3.2
   desktop_drop: ^0.3.3

@@ -51,7 +51,9 @@ class HomeScreen extends StatelessWidget {
         body: Center(
           child: Column(
             children: [
-              SizedBox(height: size.height*0.1,),
+              SizedBox(
+                height: size.height * 0.1,
+              ),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -64,13 +66,19 @@ class HomeScreen extends StatelessWidget {
                         dataProvider.showProgressIndicator();
                         if (file.files.length != 1) {
                           Excepciones.tooManyFiles(context);
-                        } else if (!file.files[0].name.endsWith('zip')) {
+                        } else if (!file.files[0].name.endsWith('zip') &&
+                            !file.files[0].name.endsWith('ZIP')) {
                           Excepciones.incorrectFile(context);
                         } else {
-                          final zip = ZipProcessor(
-                              outPath: dataProvider.outputPath,
-                              inPath: dataProvider.inputPath);
-                          await compute(zip.extractFile, file.files[0].path);
+                          try {
+                            final zip = ZipProcessor(
+                                outPath: dataProvider.outputPath,
+                                inPath: dataProvider.inputPath);
+                            await compute(zip.extractFile, file.files[0].path);
+                          } catch (e) {
+                            print(e);
+                            Excepciones.decodingError(context);
+                          }
                         }
                         dataProvider.showProgressIndicator();
                       },
@@ -96,7 +104,7 @@ class HomeScreen extends StatelessWidget {
                                           ? Colors.red[200]
                                           : Colors.green[200],
                                       title: Text(
-                                          '${dataProvider.listaEmpleados[index].apellidos}, ${dataProvider.listaEmpleados[index].nombre}'),
+                                          dataProvider.listaEmpleados[index].nombre),
                                       subtitle: Text(dataProvider
                                           .listaEmpleados[index].id),
                                     ),
@@ -117,9 +125,14 @@ class HomeScreen extends StatelessWidget {
                           child: ListView(
                         children: [
                           ListTile(
-                            title: Text('Empleados'),trailing: Text(dataProvider.listaEmpleados.length.toString()),
+                            title: const Text('Empleados'),
+                            trailing: Text(
+                                dataProvider.listaEmpleados.length.toString()),
                           ),
-                          ListTile(title: Text('Documentos asociados'),trailing: Text(dataProvider.numDoc.toString()),)
+                          ListTile(
+                            title: const Text('Documentos asociados'),
+                            trailing: Text(dataProvider.numDoc.toString()),
+                          )
                         ],
                       )))
                 ],
@@ -147,12 +160,32 @@ class HomeScreen extends StatelessWidget {
                             inputPath: dataProvider.inputPath,
                           );
                           dataProvider.showProgressIndicator();
-                          final lista = await compute(
-                              pdfExtractor.addDoc, dataProvider.listaEmpleados);
-                          dataProvider.setListaEmpleados(lista);
+                          try {
+                            final lista = await compute(pdfExtractor.addDoc,
+                                dataProvider.listaEmpleados);
+                            dataProvider.setListaEmpleados(lista);
+                          } catch (e) {
+                            print(e);
+                            Excepciones.readingPdfError(context);
+                          }
                           dataProvider.showProgressIndicator();
                         },
-                        child: Text('Asociar Archivos'))
+                        child: const Text('Asociar Archivos')),
+                    ElevatedButton(
+                        onPressed: () async {
+                          final zip = ZipProcessor(
+                              outPath: dataProvider.outputPath,
+                              inPath: dataProvider.inputPath);
+                          final data = {
+                            'listaEmpleados': dataProvider.listaEmpleados,
+                            'tipo':
+                                dataProvider.mapaTipos[dataProvider.tipoElegido]
+                          };
+                          dataProvider.showProgressIndicator();
+                          await compute(zip.generateZip, data);
+                          dataProvider.showProgressIndicator();
+                        },
+                        child: Text('Generar zip'))
                   ],
                 ),
               ))
