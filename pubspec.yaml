@@ -44,6 +44,7 @@ dependencies:
   archive: ^3.3.2
   desktop_drop: ^0.3.3
   syncfusion_flutter_pdf: ^20.3.56
+  collection: ^1.16.0
 
 dev_dependencies:
   flutter_test:

@@ -21,4 +21,8 @@ class Excepciones {
   static void renameError(BuildContext context) {
     customSnack('Error al renombrar documentos', context);
   }
+
+  static void excelReadError(BuildContext context) {
+    customSnack('Error al leer excel de empleados', context);
+  }
 }

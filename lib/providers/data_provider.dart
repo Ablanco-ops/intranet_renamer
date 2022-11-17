@@ -13,13 +13,11 @@ class DataProvider extends ChangeNotifier {
   String _inputPath = '';
   String _excelPath = '';
   bool preferenciasCargadas = false;
-  int _colId = 1;
-  int _colNombre = 0;
- 
+
   List<Empleado> _listaEmpleados = [];
   bool dragging = false;
   bool processing = false;
-  int numDoc = 0;
+  int docAsociados = 0;
 
   List<Empleado> get listaEmpleados => _listaEmpleados;
   String get outputPath => _outputPath;
@@ -28,9 +26,24 @@ class DataProvider extends ChangeNotifier {
 
   Map<String, String> mapaTipos = {'Nóminas': 'NOMI', 'Certificados': 'CERT'};
   String tipoElegido = 'Nóminas';
-
   void typeChange(String key) {
     tipoElegido = key;
+    notifyListeners();
+  }
+
+  Map<String, int> mapaExcelNombre = mapaColumnas();
+  String colNombre = 'A';
+  void colNombreChange(String key) {
+    colNombre = key;
+    Preferences.setPreferences('colNombre', key);
+    notifyListeners();
+  }
+
+  Map<String, int> mapaExcelId = mapaColumnas();
+  String colId = 'A';
+  void colIdChange(String key) {
+    colId = key;
+    Preferences.setPreferences('colId', key);
     notifyListeners();
   }
 
@@ -39,6 +52,8 @@ class DataProvider extends ChangeNotifier {
       _inputPath = await Preferences.getPreferences('inputPath');
       _outputPath = await Preferences.getPreferences('outputPath');
       _excelPath = await Preferences.getPreferences('excelPath');
+      colId = await Preferences.getPreferences('colId');
+      colNombre = await Preferences.getPreferences('colNombre');
       notifyListeners();
       preferenciasCargadas = true;
     }
@@ -68,45 +83,45 @@ class DataProvider extends ChangeNotifier {
 
   void setListaEmpleados(List<Empleado> lista) {
     _listaEmpleados = lista;
-    numDoc = 0;
+    docAsociados = 0;
     for (Empleado empleado in lista) {
       if (empleado.files.isNotEmpty) {
-        numDoc++;
+        docAsociados++;
       }
     }
     notifyListeners();
   }
 
-  Future readExcel() async {
+  Future<bool> readExcel() async {
     listaEmpleados.clear();
+    bool hayEntradas = false;
     final data = await File(_excelPath).readAsBytes();
     final excel = Excel.decodeBytes(data);
     final sheet = excel.sheets[excel.getDefaultSheet()];
     for (var row in sheet!.rows) {
       String id = '';
       String nombre = '';
-      String apellidos = '';
       int valido = 0;
       print(row);
-      if (row[_colId] != null) {
-        if (row[_colId]!.value != null) {
-          id = row[_colId]!.value.toString();
+      if (row[mapaExcelId[colId]!] != null) {
+        if (row[mapaExcelId[colId]!]!.value != null) {
+          id = row[mapaExcelId[colId]!]!.value.toString();
           print(id);
           valido++;
         }
-        if (row[_colNombre]!.value != null) {
-          nombre = row[_colNombre]!.value.toString();
+        if (row[mapaExcelNombre[colNombre]!]!.value != null) {
+          nombre = row[mapaExcelNombre[colNombre]!]!.value.toString();
           valido++;
           print(nombre);
         }
-        
       }
       if (valido == 2) {
-        _listaEmpleados
-            .add(Empleado(id: id, nombre: nombre));
+        _listaEmpleados.add(Empleado(id: id, nombre: nombre));
+        hayEntradas = true;
       }
     }
     notifyListeners();
+    return hayEntradas;
   }
 
   Future getArchives() async {
@@ -126,6 +141,24 @@ class DataProvider extends ChangeNotifier {
     notifyListeners();
   }
 
-  
+  int pdfNumber = 0;
+  void countWorkingFiles() {
+    final dir = Directory(inputPath);
+    pdfNumber = 0;
+    for (var entity in dir.listSync()) {
+      if (entity is File) {
+        final extension = entity.path.split('.').last;
+        if (extension == 'pdf' || extension == 'PDF') {
+          pdfNumber++;
+          notifyListeners();
+        }
+      }
+    }
+  }
 
+  bool isExcelExpanded = false;
+  void expandExcel() {
+    isExcelExpanded = !isExcelExpanded;
+    notifyListeners();
+  }
 }
